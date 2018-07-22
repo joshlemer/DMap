@@ -57,6 +57,14 @@ val key4: Option[List[Int]] = myDMap.get[List[Int]]("key4") // Some(List(1,2,3))
 
 // returns None, because the value associated to "key4" is a List[Int], not List[Char]
 val key4Again: Option[List[Char]] = myDMap.get[List[Char]]("key4") // None
+
+// returns Some(":-)")
+val smileyFace: Option[String] = for {
+  nested <- myDMap.get[DMap]("nested")
+  inner1 <- nested.get[DMap]("inner1")
+  smiley <- inner1.get[String]("inner2")
+} yield smiley 
+
 ```
 
 Alternatively, if you're very confident that you know the presence and type of a value in the map, you can use `.apply`:
