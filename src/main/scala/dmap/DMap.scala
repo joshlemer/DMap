@@ -5,8 +5,7 @@ import scala.language.implicitConversions
 
 import DMap._
 
-class DMap private (underlying: Map[Any, Entry])
-    extends Traversable[(Any, Entry)] {
+class DMap private (underlying: Map[Any, Entry]) extends Traversable[(Any, Entry)] {
 
   def get[T](key: Any)(implicit tt: TypeTag[T]): Option[T] = {
     underlying.get(key) match {
@@ -20,8 +19,7 @@ class DMap private (underlying: Map[Any, Entry])
 
   def contains(key: Any): Boolean = underlying.contains(key)
 
-  @inline private def updateIfChanged(
-      changedUnderlying: Map[Any, Entry]): DMap =
+  @inline private def updateIfChanged(changedUnderlying: Map[Any, Entry]): DMap =
     if (changedUnderlying.eq(underlying)) this else new DMap(changedUnderlying)
 
   @inline def +(kv: (Any, Entry)): DMap = updated(kv)
