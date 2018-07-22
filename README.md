@@ -1,4 +1,4 @@
-## DMap -- Type-safe dynamic maps in Scala using reflection
+## DMap - Type-safe dynamic maps in Scala using reflection
 
 This is a library for building dynamic, heterogeneous, type-safe Maps / Dictionaries / Associative Arrays in Scala.  
   
@@ -53,7 +53,7 @@ val value0: Option[String] = myDMap.get[String]("key0") // None
 val value1Again: Option[Int] = myDMap.get[Int]("key1") // None
 
 // Because we are using scala's reflection api, we are not limited by type erasure
-val key4: Option[List[Int]] = myDMap.get[List[Int]]("key4") // Some(List(1,3,4))
+val key4: Option[List[Int]] = myDMap.get[List[Int]]("key4") // Some(List(1,2,3))
 
 // returns None, because the value associated to "key4" is a List[Int], not List[Char]
 val key4Again: Option[List[Char]] = myDMap.get[List[Char]]("key4") // None
@@ -69,6 +69,9 @@ val value0: String = myDMap[String]("key0") // throws NoSuchElementException, "k
 val value1Again: String = myDMap[Int]("key1") // throws NoSuchElementException, "key1" contains String, not Int
 ```
 
+### Limitations
+
+* DMaps have no hope of being serializable unless you provide your own serialization, because each value in the DMap captures a reference to a `scala.reflect.api.Types.Type` in order to support runtime type checking.
 
 
 
