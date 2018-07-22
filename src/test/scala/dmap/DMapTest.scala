@@ -1,5 +1,6 @@
 package dmap
 
+import dmap.DMap.Entry
 import org.scalatest.FlatSpec
 
 class DMapTest extends FlatSpec {
@@ -30,8 +31,22 @@ class DMapTest extends FlatSpec {
     assertResult(x.get[String](List(5)))(Some("yoyoyo"))
     assertResult(x.apply[DMap]("nested").apply[String]("lol"))("lol")
   }
-//  val y = x + ("asdf" -> Array(2))
-//
-//  val z = y ++ Seq('i' -> 'j', -1 -> new RuntimeException())
+
+
+  it should "Not wrap an entry in an entry" in {
+    val x = DMap(
+      "key1" -> Entry(1),
+      "key2" -> 1
+    )
+
+    assertResult(Some(1))(x.get[Int]("key1"))
+    assertResult(Some(1))(x.get[Int]("key2"))
+
+    val y = DMap(
+      "key1" -> Entry(1)
+    )
+
+    assertResult(Some(1))(y.get[Int]("key1"))
+  }
 
 }
