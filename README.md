@@ -25,7 +25,7 @@ val myDMap = DMap(
     
     // keys can be any type as well...
     
-    1 -> 1,
+    1 -> 2,
     Nil -> Nil,
     3.14159 -> "pi",
     
@@ -57,6 +57,9 @@ val key4: Option[List[Int]] = myDMap.get[List[Int]]("key4") // Some(List(1,2,3))
 
 // returns None, because the value associated to "key4" is a List[Int], not List[Char]
 val key4Again: Option[List[Char]] = myDMap.get[List[Char]]("key4") // None
+
+// non-string keys also work
+val two: Option[Int] = myDMap.get[Int](1) // Some(2)
 
 // returns Some(":-)")
 val smileyFace: Option[String] = for {
