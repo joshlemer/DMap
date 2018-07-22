@@ -49,4 +49,23 @@ class DMapTest extends FlatSpec {
     assertResult(Some(1))(y.get[Int]("key1"))
   }
 
+  behavior of "transformations"
+
+  it should "concat two DMaps" in {
+    val x = DMap(
+      "key1" -> 1,
+      "key2" -> 1
+    ) ++ DMap(
+      "key2" -> 2,
+      1 -> 2,
+      3 -> 4
+    )
+
+
+    assertResult(Some(1))(x.get[Int]("key1"))
+    assertResult(Some(2))(x.get[Int]("key2"))
+    assertResult(Some(2))(x.get[Int](1))
+    assertResult(Some(4))(x.get[Int](3))
+  }
+
 }
