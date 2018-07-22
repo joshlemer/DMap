@@ -40,7 +40,7 @@ val myDMap = DMap(
 )
 ```
 
-### Accessing data in DMaps
+#### Accessing data in DMaps
 
 ```scala
 // returns Some("value1") because "key1" is in the DMap and its value is of type String
@@ -77,9 +77,36 @@ val value0: String = myDMap[String]("key0") // throws NoSuchElementException, "k
 val value1Again: String = myDMap[Int]("key1") // throws NoSuchElementException, "key1" contains String, not Int
 ```
 
+#### Adding / Removing keys
+
+keys can be added just like regular Scala Maps
+
+```scala
+
+val y = x + ("foo" -> "bar")
+
+val z = y ++ List("baz" -> 1, "boo" -> 9)
+
+z.get[Int]("baz") // Some(1)
+z.get[String]("foo") // Some("bar")
+```
+
+keys can also be removed just like regular Scala maps
+
+```scala
+val z2: DMap = z - "foo"
+
+z2.get[String]("foo") // None
+
+val z3 = z -- List("foo", "baz")
+
+z3.get[String]("foo") // None
+z3.get[String]("baz") // None
+
+
 ### Limitations
 
-* DMaps have no hope of being serializable unless you provide your own serialization, because each value in the DMap captures a reference to a `scala.reflect.api.Types.Type` in order to support runtime type checking.
+* DMaps have no hope of being serializable unless you provide your own serialization, because each value in the DMap captures a reference to a `scala.reflect.api.Types.Type` in order to support runtime type checking. So don't even _think_ of sending these to a Spark Executor!
 
 
 

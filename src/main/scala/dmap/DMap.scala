@@ -2,20 +2,19 @@ package dmap
 
 import scala.reflect.runtime.universe._
 import scala.language.implicitConversions
-
 import DMap._
 
-class DMap private (underlying: Map[Any, Entry]) extends Traversable[(Any, Entry)] {
+import scala.collection.GenTraversableOnce
 
-  def get[T](key: Any)(implicit tt: TypeTag[T]): Option[T] = {
+final class DMap private (private val underlying: Map[Any, Entry]) extends Traversable[(Any, Entry)] {
+
+  def get[T](key: Any)(implicit tt: TypeTag[T]): Option[T] =
     underlying.get(key) match {
       case Some(entry) => entry.getAs[T]
       case _           => None
     }
-  }
 
-  def apply[T](key: Any)(implicit tt: TypeTag[T]): T =
-    get[T](key).getOrElse(throw new NoSuchElementException)
+  def apply[T](key: Any)(implicit tt: TypeTag[T]): T = get[T](key).getOrElse(throw new NoSuchElementException)
 
   def contains(key: Any): Boolean = underlying.contains(key)
 
@@ -26,22 +25,19 @@ class DMap private (underlying: Map[Any, Entry]) extends Traversable[(Any, Entry
 
   def updated(kv: (Any, Entry)): DMap = updateIfChanged(underlying + kv)
 
-  def ++(that: TraversableOnce[(Any, Entry)]): DMap =
-    updateIfChanged(underlying ++ that)
+  def ++(that: GenTraversableOnce[(Any, Entry)]): DMap = updateIfChanged(underlying ++ that)
 
   def -(key: Any): DMap = updateIfChanged(underlying - key)
 
+  def --(keys: GenTraversableOnce[Any]): DMap = updateIfChanged(underlying -- keys)
+
   def values: Iterable[Any] = underlying.values.map(_.value)
 
-  def valuesOfType[V](implicit tt: TypeTag[V]): Iterable[V] =
-    underlying.values.collect {
-      case Entry(v, t) if t.<:<(tt.tpe) => v.asInstanceOf[V]
-    }
+  def valuesOfType[V](implicit tt: TypeTag[V]): Iterable[V] = underlying.values.flatMap(_.getAs[V])
 
   override def mkString: String = underlying.mapValues(_.value).mkString
 
-  override def mkString(sep: String): String =
-    underlying.mapValues(_.value).mkString(sep)
+  override def mkString(sep: String): String = underlying.mapValues(_.value).mkString(sep)
 
   override def mkString(start: String, sep: String, end: String): String =
     underlying.mapValues(_.value).mkString(start, sep, end)
@@ -55,6 +51,15 @@ class DMap private (underlying: Map[Any, Entry]) extends Traversable[(Any, Entry
   override def isEmpty = underlying.isEmpty
 
   def toMap: Map[Any, Any] = underlying.mapValues(_.value)
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case dm: DMap => dm.underlying == underlying
+    case _ => false
+  }
+
+  override def hashCode(): Int = hashFields(underlying)
+
+  override def toString(): String = "DMap" + mkString("(",",",")")
 }
 
 object DMap {
@@ -77,7 +82,29 @@ object DMap {
     * */
   def apply(kvs: (Any, Entry)*): DMap = new DMap(kvs.toMap)
 
-  class Entry private (val value: Any, val tpe: Type) {
+  /** Contains a value as well as its type. Usually, you do not need to use this class explicitly, since the implicit
+    * conversions provided by `import dmap._` will create these for you when interacting with DMaps
+    *
+    * Usage (with implicit conversions):
+    *
+    * {{{
+    *   import dmap._
+    *
+    *   val entry: Entry = 1
+    * }}}
+    *
+    * Usage (without implicit conversions):
+    *
+    * {{{
+    *   import dmap.DMap.Entry
+    *
+    *   val entry: Entry = Entry(1)
+    * }}}
+    *
+    *
+    *
+    * */
+  final class Entry private (val value: Any, val tpe: Type) {
 
     /** Returns true if its value is of type T, otherwise false */
     def isA[T](implicit tt: TypeTag[T]): Boolean = tt.tpe.<:<(tpe)
@@ -88,6 +115,15 @@ object DMap {
 
     @throws[ClassCastException]
     def as[T](implicit tt: TypeTag[T]): T = value.asInstanceOf[T]
+
+    override def equals(obj: scala.Any): Boolean = obj match {
+      case Entry(v, t) => v == value && (t =:= tpe)
+      case _           => false
+    }
+
+    override def toString: String = s"Entry(value=$value, tpe=$tpe)"
+
+    override def hashCode(): Int = hashFields(value, tpe)
   }
 
   object Entry {
